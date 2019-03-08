@@ -1,0 +1,16 @@
+server {
+  listen 80;
+  server_name gogs.localhost default;
+
+  client_max_body_size 256M;
+
+  gzip on;
+  gzip_disable "msie6";
+  gzip_types text/css application/json text/javascript application/javascript;
+
+  location / {
+    proxy_set_header   X-Real-IP $remote_addr;
+    proxy_set_header   Host      $host;
+    proxy_pass         http://gogs-app:3000;
+  }
+}

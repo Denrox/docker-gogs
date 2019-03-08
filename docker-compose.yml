@@ -1,0 +1,49 @@
+version: '3'
+services:
+  postgres:
+    image: 'postgres:10-alpine'
+    restart: always
+    environment:
+      - POSTGRES_USER=gogs
+      - POSTGRES_PASSWORD=testpw
+      - POSTGRES_DB=gogs
+      - PGDATA=/var/lib/postgresql/data/db-files/
+    volumes:
+     - "./data/db:/var/lib/postgresql/data/"
+    networks:
+      - backend
+
+  gogs-app:
+    image: 'gogs/gogs:0.11.53'
+    restart: always
+    links:
+      - postgres
+    hostname: 'gogs-app'
+    environment:
+      - "RUN_CROND=true"
+    networks:
+      - backend
+      - frontend
+    volumes:
+      - "./data/gogs:/data"
+    depends_on:
+      - postgres
+
+  nginx:
+    image: 'nginx:1.13-alpine'
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    links:
+       - gogs-app
+    volumes:
+      - ./nginx/sites-enabled/gogs:/etc/nginx/conf.d/gogs.conf:ro
+    networks:
+      - frontend
+
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge
